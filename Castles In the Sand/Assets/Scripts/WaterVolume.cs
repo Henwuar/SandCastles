@@ -4,10 +4,21 @@ using UnityEngine;
 
 public class WaterVolume : MonoBehaviour
 {
+    [SerializeField]
+    private Transform waterContainer;
+    private Water water;
+    private Material material;
+
+    void Start()
+    {
+        water = waterContainer.GetComponentInChildren<Water>();
+        material = GetComponent<Renderer>().material;
+    }
+
 	// Update is called once per frame
 	void Update ()
-    {
-        transform.localScale = new Vector3(10, transform.parent.position.y * 2.4f, 10);
-        transform.localPosition = new Vector3(transform.localPosition.x/*+(transform.parent.localScale.x*0.1f)*/, -transform.parent.position.y, transform.localPosition.z);
+    { 
+        transform.parent.localScale = new Vector3(waterContainer.localScale.x, waterContainer.position.y*2, waterContainer.localScale.z);
+        material.SetFloat("_Timer", water.GetRippleTime());
 	}
 }

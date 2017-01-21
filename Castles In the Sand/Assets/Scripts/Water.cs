@@ -53,7 +53,7 @@ public class Water : MonoBehaviour
         transform.parent.position = new Vector3(transform.parent.position.x, waterLevel +waveHeight,5);
 
         Vector3 startPoint = new Vector3(transform.parent.position.x, transform.parent.position.y, 5);
-        Vector3 endPoint = new Vector3(transform.parent.position.x + 20, transform.parent.position.y, 5);
+        Vector3 endPoint = new Vector3(transform.parent.position.x + 5, transform.parent.position.y, 5);
         Ray ray = new Ray(startPoint, new Vector3(1, 0, 0));
         RaycastHit hit;
         Physics.Raycast(ray, out hit);
@@ -63,9 +63,8 @@ public class Water : MonoBehaviour
             //transform.position = Vector3.Lerp(transform.parent.position, hit.point, 0.5f);
             targetScale = (Vector3.Distance(startPoint, endPoint) / 10) ;
 
-            if (Mathf.Abs(targetWaveHeight - waveHeight) < 0.05f)
+            if (Mathf.Abs(targetWaveHeight - waveHeight) < erosionMargin)
             {
-                print("destroy");
                 hit.collider.gameObject.GetComponent<Sand>().Erode(hit.point.x);
             }
             
@@ -76,6 +75,11 @@ public class Water : MonoBehaviour
         }
 
         curScale = Mathf.Lerp(curScale, targetScale, Time.deltaTime);
-        transform.parent.localScale = new Vector3(curScale, 1, 1);
+        transform.parent.localScale = new Vector3(curScale, 1, transform.parent.localScale.z);
+    }
+
+    public float GetRippleTime()
+    {
+        return timer * rippleSpeed;
     }
 }

@@ -14,7 +14,7 @@ public class Sand : MonoBehaviour
     private Texture2D craterMap;
     private TerrainData terrain;
 
-    private const float BASE_HEIGHT = 0.25f;
+    public const float BASE_HEIGHT = 0.25f;
 
     float timer = 0;
 
@@ -24,6 +24,8 @@ public class Sand : MonoBehaviour
         terrain = GetComponent<Terrain>().terrainData;
         
         ResetHeight();
+
+        GetComponent<CreateSandWalls>().CreateWalls();
 	}
 	
 	// Update is called once per frame
