@@ -10,6 +10,7 @@ Shader "Custom/IntersectionHighlights"
 		_Timer("Timer", Float) = 0 //for applying vertex offset
 		_RippleHeight("Ripple Height", Float) = 1
 		_RippleFrequency("Ripple Frequency", Float) = 10
+		_NoiseTexture("Noise Texture", 2D) = "white" {}
 	}
 		SubShader
 	{
@@ -28,6 +29,7 @@ Shader "Custom/IntersectionHighlights"
 #include "UnityCG.cginc"
 
 	uniform sampler2D _CameraDepthTexture; //Depth Texture
+	uniform sampler2D _NoiseTexture;
 	uniform float4 _RegularColor;
 	uniform float4 _HighlightColor;
 	uniform float _HighlightThresholdMax;
@@ -38,6 +40,7 @@ Shader "Custom/IntersectionHighlights"
 	struct v2f
 	{
 		float4 pos : SV_POSITION;
+		float2 texCoord : TEXCOORD0;
 		float4 projPos : TEXCOORD1; //Screen position of pos
 	};
 
@@ -45,10 +48,13 @@ Shader "Custom/IntersectionHighlights"
 	{
 		v2f o;
 		//apply an offset to make ripples
-		v.vertex.y += _RippleHeight*(sin(v.vertex.x+_RippleFrequency*_Timer*3.1415f) * cos(v.vertex.z+_RippleFrequency*_Timer*3.1415f) + cos(v.vertex.x + _RippleFrequency*_Timer*3.1415f) * sin(v.vertex.z + _RippleFrequency*_Timer*3.1415f));
+		float noiseVal = 0;// tex2D(_NoiseTexture, v.texcoord);
+		float waveOffset = sin(_RippleFrequency*(v.vertex.x + _Timer*3.1415f)) + cos(_RippleFrequency*(v.vertex.z + _Timer*6.2830f));
+		v.vertex.y += _RippleHeight*(noiseVal + waveOffset);
 
 		o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 		o.projPos = ComputeScreenPos(o.pos);
+
 
 		return o;
 	}

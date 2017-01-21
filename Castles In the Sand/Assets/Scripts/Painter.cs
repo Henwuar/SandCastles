@@ -44,7 +44,7 @@ public class Painter : MonoBehaviour
             if (hit.collider && hit.collider.gameObject.tag == "Sand")
             {
                 sand.Paint(hit.point, brushSize);
-                curSand -= Time.deltaTime;
+                curSand -= Time.deltaTime * brushSize;
             }
         }
         else if(Input.GetMouseButton(1))
@@ -52,7 +52,7 @@ public class Painter : MonoBehaviour
             if (hit.collider && hit.collider.gameObject.tag == "Sand")
             {
                 sand.Paint(hit.point, brushSize, false);
-                curSand += Time.deltaTime;
+                curSand += Time.deltaTime * brushSize;
             }
         }
         
