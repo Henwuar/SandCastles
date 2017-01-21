@@ -13,7 +13,12 @@ public class Water : MonoBehaviour
     [SerializeField]
     float tideSpeed;
     [SerializeField]
-    float erosionMargin;
+    float maxTide;
+    [SerializeField]
+    float erosionPower;
+
+
+
     private Material material;
     private float timer = 0;
     private float waterLevel = 0;
@@ -41,7 +46,7 @@ public class Water : MonoBehaviour
             waterLevel += tideSpeed * Time.deltaTime;
         //}
 
-        if(waterLevel > 0.5f || waterLevel < 0)
+        if(waterLevel >= 0.5f || waterLevel < 0)
         {
             tideSpeed *= -1;
         }
@@ -50,7 +55,7 @@ public class Water : MonoBehaviour
             targetWaveHeight = Random.Range(0.01f, maxWaveHeight);
         }
         
-        transform.parent.position = new Vector3(transform.parent.position.x, waterLevel +waveHeight,5);
+        transform.parent.position = new Vector3(transform.parent.position.x, Mathf.Min(waterLevel + waveHeight, maxTide), 5);
 
         Vector3 startPoint = new Vector3(transform.parent.position.x, transform.parent.position.y, 5);
         Vector3 endPoint = new Vector3(transform.parent.position.x + 5, transform.parent.position.y, 5);
@@ -61,20 +66,18 @@ public class Water : MonoBehaviour
         {
             endPoint = hit.point;
             //transform.position = Vector3.Lerp(transform.parent.position, hit.point, 0.5f);
-            targetScale = (Vector3.Distance(startPoint, endPoint) / 10) ;
+            targetScale = (Vector3.Distance(startPoint, endPoint) / 10) + 0.1f;
+            
+            hit.collider.gameObject.GetComponent<Sand>().Erode(hit.point.x, erosionPower + erosionPower * (waterLevel/maxTide));
 
-            if (Mathf.Abs(targetWaveHeight - waveHeight) < erosionMargin)
-            {
-                hit.collider.gameObject.GetComponent<Sand>().Erode(hit.point.x);
-            }
             
         }
         else
         {
-            targetScale = 2;
+            targetScale = 1;
         }
 
-        curScale = Mathf.Lerp(curScale, targetScale, Time.deltaTime);
+        curScale = Mathf.Lerp(curScale, targetScale, 2 * Time.deltaTime);
         transform.parent.localScale = new Vector3(curScale, 1, transform.parent.localScale.z);
     }
 

@@ -7,11 +7,13 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private float rotateSpeed;
     [SerializeField]
-    private float minZoom;
-    [SerializeField]
-    private float maxZoom;
+    private Vector2 zoomLimits;
     [SerializeField]
     private float zoomSpeed;
+    [SerializeField]
+    private float moveSpeed;
+    [SerializeField]
+    private Vector2 moveLimits;
 
     private float yRotation = 0;
     private float curZoom;
@@ -23,7 +25,7 @@ public class CameraController : MonoBehaviour
     {
         cameraTransform = transform.GetChild(0);
         cameraTransform.LookAt(transform);
-        curZoom = (maxZoom + minZoom) * 0.5f;
+        curZoom = (zoomLimits.x + zoomLimits.y) * 0.5f;
         body = GetComponent<Rigidbody>();
     }
 	
@@ -32,6 +34,7 @@ public class CameraController : MonoBehaviour
     {
         float rotation = Input.GetAxis("Horizontal") * -rotateSpeed * Time.deltaTime;
         float zoom = Input.GetAxis("Vertical") * zoomSpeed * Time.deltaTime;
+        float strafe = Input.GetAxis("Strafe") * moveSpeed * Time.deltaTime;
 
         if(Input.GetButtonUp("Horizontal"))
         {
@@ -41,14 +44,17 @@ public class CameraController : MonoBehaviour
         body.AddTorque(new Vector3(0, rotation, 0));
         //yRotation -= rotation;
         curZoom -= zoom;
-        if(curZoom < minZoom)
+        if(curZoom < zoomLimits.x)
         {
-            curZoom = minZoom;
+            curZoom = zoomLimits.x;
         }
-        if(curZoom > maxZoom)
+        if(curZoom > zoomLimits.y)
         {
-            curZoom = maxZoom;
+            curZoom = zoomLimits.y;
         }
+        
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(transform.position.z, moveLimits.x, moveLimits.y));
+        body.AddForce(new Vector3(0, 0, -strafe));
 
         //transform.rotation = Quaternion.Euler(0, yRotation, 0);
         cameraTransform.position = transform.position - (cameraTransform.forward * curZoom);

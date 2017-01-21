@@ -12,14 +12,27 @@ public class Painter : MonoBehaviour
     Transform cursor;
     [SerializeField]
     float maxSand;
+    [SerializeField]
+    float sandFloat;
+    [SerializeField]
+    private int maxBrushSize;
+
+    private Transform shadow;
+    private Transform sandBall;
+
+    private float shadowScale;
+    private float ballScale;
 
     float curSand = 0;
 
 	// Use this for initialization
 	void Start ()
     {
-		
-	}
+        shadow = cursor.transform.FindChild("Shadow");
+        sandBall = cursor.transform.FindChild("SandBall");
+        shadowScale = cursor.transform.localScale.x;
+        ballScale = cursor.transform.localScale.x;
+    }
 	
 	// Update is called once per frame
 	void Update ()
@@ -30,9 +43,12 @@ public class Painter : MonoBehaviour
         if(hit.collider && hit.collider.gameObject.tag == "Sand")
         {
             cursor.gameObject.SetActive(true);
-            cursor.transform.position = hit.point;
-            float cursorScale = brushSize * 1.0f / hit.collider.GetComponent<Terrain>().terrainData.size.magnitude;
-            cursor.localScale = new Vector3(cursorScale, cursorScale, cursorScale);
+            cursor.transform.position = hit.point + Vector3.up;
+            shadow.position = hit.point + Vector3.up*0.01f;
+            //Vector3 lookAtPoint = hit.point + hit.normal;
+            //cursor.transform.LookAt(lookAtPoint);
+            float curShadowScale = brushSize * (1.0f / hit.collider.GetComponent<Terrain>().terrainData.size.x) * 0.25f ;
+            shadow.localScale = new Vector3(curShadowScale, curShadowScale, curShadowScale);
         }
         else
         {
@@ -43,19 +59,27 @@ public class Painter : MonoBehaviour
         {
             if (hit.collider && hit.collider.gameObject.tag == "Sand")
             {
-                sand.Paint(hit.point, brushSize);
+                sand.Paint(hit.point, brushSize, maxBrushSize);
                 curSand -= Time.deltaTime * brushSize;
             }
         }
-        else if(Input.GetMouseButton(1))
+        if(Input.GetMouseButton(1))
         {
             if (hit.collider && hit.collider.gameObject.tag == "Sand")
             {
-                sand.Paint(hit.point, brushSize, false);
+                sand.Paint(hit.point, brushSize, maxBrushSize, false);
                 curSand += Time.deltaTime * brushSize;
             }
         }
-        
+        if(Input.GetMouseButton(2))
+        {
+            if (hit.collider && hit.collider.gameObject.tag == "Sand")
+            {
+                sand.Smooth(hit.point, brushSize);
+                curSand += Time.deltaTime * brushSize;
+            }
+        }
+
         if(Input.GetAxis("Mouse ScrollWheel") < 0)
         {
             brushSize++;
@@ -64,6 +88,9 @@ public class Painter : MonoBehaviour
         {
             brushSize--;
         }
-        brushSize = Mathf.Clamp(brushSize, 2, 20);
+        brushSize = Mathf.Clamp(brushSize, 2, maxBrushSize);
+
+        float ballSize = Mathf.Clamp((curSand / maxSand), 0.1f, 1);
+        sandBall.localScale = new Vector3(ballSize, ballSize, ballSize);
     }
 }

@@ -34,7 +34,7 @@ public class Sand : MonoBehaviour
         
 	}
 
-    public void Paint(Vector3 position, int size, bool additive = true)
+    public void Paint(Vector3 position, int size, int maxSize, bool additive = true)
     {
         Vector3 point = position - transform.position;
         int xBase = Mathf.FloorToInt((point.x / terrain.size.x) * terrain.heightmapWidth) - size/2;
@@ -61,6 +61,8 @@ public class Sand : MonoBehaviour
         }
 
         float addVal = additive ? digSpeed : -digSpeed;
+        addVal *= Mathf.Clamp((maxSize/size)*5, 0.1f, 1.0f);
+        print(addVal);
 
         float[,] heights = terrain.GetHeights(xBase, yBase, w, h);
 
@@ -89,23 +91,92 @@ public class Sand : MonoBehaviour
         terrain.SetHeights(xBase, yBase, heights);
     }
 
-    public void Erode(float heightPoint)
+    public void Erode(float heightPoint, float maxPower)
     {
         //print("eroding");
         float pos = heightPoint - transform.position.x;
         int sampleWidth = Mathf.FloorToInt((pos / terrain.size.x) * terrain.heightmapWidth);
 
         float[,] heights = terrain.GetHeights(0, 0, sampleWidth, terrain.heightmapHeight);
+
+        float power = maxPower;
         for(int i = 0; i < sampleWidth; i++)
         {
             float targetHeight = GetResetHeight(i);
             for (int j = 0; j < terrain.heightmapHeight; j++)
             {
-                heights[j, i] = Mathf.Lerp(heights[j, i], targetHeight, erosionRate*Time.deltaTime);
+                float heightDiff = Mathf.Abs(heights[j, i] - targetHeight);
+                if (heightDiff <= 0.01f)
+                {
+                    heights[j, i] = targetHeight;
+                }
+                else
+                {
+                    float erosionModifier = 1;
+                    power--;
+                    if(heightDiff > BASE_HEIGHT*0.5f)
+                    {
+                        erosionModifier = 2;
+                    }
+                    heights[j, i] = Mathf.Lerp(heights[j, i], targetHeight, erosionRate * erosionModifier * Time.deltaTime);
+                }
+                if(power <= 0)
+                {
+                    break;
+                }
+            }
+        }
+        terrain.SetHeights(0, 0, heights);
+    }
+
+    public void Smooth(Vector3 position, int size)
+    {
+        Vector3 point = position - transform.position;
+        int xBase = Mathf.FloorToInt((point.x / terrain.size.x) * terrain.heightmapWidth) - size / 2;
+        int yBase = Mathf.FloorToInt((point.z / terrain.size.z) * terrain.heightmapHeight) - size / 2;
+
+        if (xBase <= 0)
+        {
+            xBase = 1;
+        }
+        if (yBase <= 0)
+        {
+            yBase = 1;
+        }
+
+        int w = size;
+        if (xBase + w >= terrain.heightmapWidth)
+        {
+            w = terrain.heightmapWidth - xBase - 1;
+        }
+        int h = size;
+        if (yBase + h >= terrain.heightmapHeight)
+        {
+            h = terrain.heightmapHeight - yBase - 1;
+        }
+
+        float[,] heights = terrain.GetHeights(xBase, yBase, w, h);
+
+        float averageHeight = 0;
+
+        for (int i = 0; i < w; i++)
+        {
+            for (int j = 0; j < h; j++)
+            {
+                averageHeight += heights[j, i];
             }
         }
 
-        terrain.SetHeights(0, 0, heights);
+        averageHeight /= (w * h);
+
+        for (int i = 0; i < w; i++)
+        {
+            for (int j = 0; j < h; j++)
+            {
+                heights[j, i] = Mathf.Lerp(heights[j, i], averageHeight, Time.deltaTime);
+            }
+        }
+        terrain.SetHeights(xBase, yBase, heights);
     }
 
     void ResetHeight()
