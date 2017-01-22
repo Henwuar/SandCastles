@@ -18,7 +18,7 @@ public class WaterVolume : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     { 
-        transform.parent.localScale = new Vector3(waterContainer.localScale.x, waterContainer.position.y*2.1f, waterContainer.localScale.z);
+        transform.parent.localScale = new Vector3(waterContainer.localScale.x, waterContainer.position.y*2, waterContainer.localScale.z);
         material.SetFloat("_Timer", water.GetRippleTime());
 	}
 }

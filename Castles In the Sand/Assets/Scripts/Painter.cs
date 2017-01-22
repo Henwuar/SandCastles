@@ -23,6 +23,9 @@ public class Painter : MonoBehaviour
     private float shadowScale;
     private float ballScale;
 
+    private GameObject lastHit = null;
+    private GameObject selected = null;
+
     float curSand = 0;
 
 	// Use this for initialization
@@ -40,7 +43,7 @@ public class Painter : MonoBehaviour
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Physics.Raycast(ray, out hit);
-        if(hit.collider && hit.collider.gameObject.tag == "Sand")
+        if(hit.collider && hit.collider.gameObject.tag == "Sand" && selected == null)
         {
             cursor.gameObject.SetActive(true);
             cursor.transform.position = hit.point + Vector3.up;
@@ -55,30 +58,49 @@ public class Painter : MonoBehaviour
             cursor.gameObject.SetActive(false);
         }
 
-        if (Input.GetMouseButton(0) && curSand > 0)
+        if (hit.collider)
         {
-            if (hit.collider && hit.collider.gameObject.tag == "Sand")
+            if(hit.collider.gameObject.tag == "Sand")
             {
-                sand.Paint(hit.point, brushSize, maxBrushSize);
-                curSand -= Time.deltaTime * brushSize;
+                if (Input.GetMouseButton(0) && curSand > 0)
+                {
+                    sand.Paint(hit.point, brushSize, maxBrushSize);
+                    curSand -= Time.deltaTime * brushSize;
+                }
+                if (Input.GetMouseButton(1))
+                {
+                    sand.Paint(hit.point, brushSize, maxBrushSize, false);
+                    curSand += Time.deltaTime * brushSize;
+                }
+                if (Input.GetMouseButton(2))
+                {
+                    sand.Smooth(hit.point, brushSize);
+                    curSand += Time.deltaTime * brushSize;   
+                }
+            }
+            if (hit.collider.gameObject.tag == "Interactable" && selected == null)
+            {
+                lastHit = hit.collider.gameObject;
+                if(lastHit.GetComponent<Interactable>().CanHighlight())
+                {
+                    lastHit.GetComponent<Interactable>().SetHighlighted(true);
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        selected = lastHit;
+                        selected.layer = LayerMask.NameToLayer("Ignore Raycast");
+                    }
+                }
+            }
+            else
+            {
+                if(lastHit != null)
+                {
+                    lastHit.GetComponent<Interactable>().SetHighlighted(false);
+                }
+                lastHit = null;
             }
         }
-        if(Input.GetMouseButton(1))
-        {
-            if (hit.collider && hit.collider.gameObject.tag == "Sand")
-            {
-                sand.Paint(hit.point, brushSize, maxBrushSize, false);
-                curSand += Time.deltaTime * brushSize;
-            }
-        }
-        if(Input.GetMouseButton(2))
-        {
-            if (hit.collider && hit.collider.gameObject.tag == "Sand")
-            {
-                sand.Smooth(hit.point, brushSize);
-                curSand += Time.deltaTime * brushSize;
-            }
-        }
+        
 
         if(Input.GetAxis("Mouse ScrollWheel") < 0)
         {
@@ -92,5 +114,20 @@ public class Painter : MonoBehaviour
 
         float ballSize = Mathf.Clamp((curSand / maxSand), 0.1f, 1);
         sandBall.localScale = new Vector3(ballSize, ballSize, ballSize);
+
+        if (hit.collider && hit.collider.gameObject.tag == "Sand" && selected != null)
+        {
+            selected.transform.position = hit.point;
+            selected.GetComponent<Interactable>().SetHighlighted(true);
+            Vector3 lookAtPoint = hit.point + Vector3.Cross(hit.normal, selected.transform.right);
+            selected.transform.LookAt(lookAtPoint);
+            if (Input.GetMouseButtonDown(0))
+            {
+                print("drop");
+                selected.layer = LayerMask.NameToLayer("Default");
+                selected.GetComponent<Interactable>().SetHighlighted(true);
+                selected = null;
+            }
+        }
     }
 }

@@ -37,24 +37,29 @@ Shader "Custom/IntersectionHighlights"
 	uniform float _RippleHeight;
 	uniform float _RippleFrequency;
 
+	struct appdata
+	{
+		float4 vertex : POSITION;
+		float2 texcoord : TEXCOORD0;
+	};
+
 	struct v2f
 	{
 		float4 pos : SV_POSITION;
-		float2 texCoord : TEXCOORD0;
+		float2 uv : TEXCOORD0;
 		float4 projPos : TEXCOORD1; //Screen position of pos
 	};
 
-	v2f vert(appdata_base v)
+	v2f vert(appdata v)
 	{
 		v2f o;
 		//apply an offset to make ripples
-		float noiseVal = 0;// tex2D(_NoiseTexture, v.texcoord);
 		float waveOffset = sin(_RippleFrequency*(v.vertex.x + _Timer*3.1415f)) + cos(_RippleFrequency*(v.vertex.z + _Timer*6.2830f));
-		v.vertex.y += _RippleHeight*(noiseVal + waveOffset);
+		v.vertex.y += _RippleHeight*(waveOffset);
 
 		o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 		o.projPos = ComputeScreenPos(o.pos);
-
+		o.uv = v.texcoord;
 
 		return o;
 	}
