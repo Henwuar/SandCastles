@@ -119,7 +119,7 @@ public class Painter : MonoBehaviour
         {
             selected.transform.position = hit.point;
             selected.GetComponent<Interactable>().SetHighlighted(true);
-            Vector3 lookAtPoint = hit.point + Vector3.Cross(hit.normal, selected.transform.right);
+            Vector3 lookAtPoint = hit.point + Quaternion.Euler(0, 0, 90) * hit.normal;
             selected.transform.LookAt(lookAtPoint);
             if (Input.GetMouseButtonDown(0))
             {

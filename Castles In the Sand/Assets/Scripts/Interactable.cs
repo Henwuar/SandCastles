@@ -67,7 +67,7 @@ public class Interactable : MonoBehaviour
                     if(transform.position.y > hit.point.y)
                     {
                         transform.position = hit.point;
-                        Vector3 lookAtPoint = hit.point + Vector3.Cross(hit.normal, transform.right);
+                        Vector3 lookAtPoint = hit.point + Quaternion.Euler(0, 0, 90) * hit.normal;
                         transform.LookAt(lookAtPoint);
                     }
                 }
