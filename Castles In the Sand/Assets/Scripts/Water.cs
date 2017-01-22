@@ -16,7 +16,10 @@ public class Water : MonoBehaviour
     float maxTide;
     [SerializeField]
     float erosionPower;
-
+    [SerializeField]
+    private GameObject[] spawnables;
+    [SerializeField]
+    private float spawnChance;
 
 
     private Material material;
@@ -28,13 +31,14 @@ public class Water : MonoBehaviour
     private float targetScale = 1;
     private float averageHitpoint;
     private float curStep = 1;
+    private float prevHeight;
+    private float prevVelocity;
 
 
 	// Use this for initialization
 	void Start ()
     {
         material = GetComponent<Renderer>().material;
-        Camera.main.depthTextureMode = DepthTextureMode.Depth;
         targetWaveHeight = Random.Range(0.01f, maxWaveHeight);
 	}
 	
@@ -49,7 +53,7 @@ public class Water : MonoBehaviour
             waterLevel += tideSpeed * Time.deltaTime;
         //}
 
-        if(waterLevel >= 0.5f || waterLevel < 0)
+        if(waterLevel >= maxTide || waterLevel < 0)
         {
             tideSpeed *= -1;
         }
@@ -71,14 +75,19 @@ public class Water : MonoBehaviour
         Ray ray = new Ray(startPoint, new Vector3(1, 0, 0));
         RaycastHit hit;
         Physics.Raycast(ray, out hit);
-        if(hit.collider && hit.collider.tag == "Sand")
+        if(hit.collider)
         {
+            
             endPoint = hit.point;
             averageHitpoint += hit.point.x;
             //transform.position = Vector3.Lerp(transform.parent.position, hit.point, 0.5f);
             targetScale = ((averageHitpoint/curStep) / 10) + 0.1f;
+
+            if (hit.collider.tag == "Sand")
+            {
+                hit.collider.gameObject.GetComponent<Sand>().Erode(averageHitpoint / curStep, erosionPower + erosionPower * (waterLevel / maxTide));
+            }
             
-            hit.collider.gameObject.GetComponent<Sand>().Erode(averageHitpoint/curStep, erosionPower + erosionPower * (waterLevel/maxTide));
 
             
         }
@@ -87,8 +96,22 @@ public class Water : MonoBehaviour
             targetScale = 1;
         }
 
-        Debug.DrawLine(startPoint, endPoint,Color.green);
+        float velocity = Mathf.Sign((waterLevel+waveHeight) - prevHeight);
+        if(velocity < 0 && prevVelocity >= 0)
+        {
+            if(Random.Range(0, 100) < spawnChance)
+            {
+                Vector3 spawnPos = new Vector3((9.8f * transform.parent.localScale.x), prevHeight + 0.1f, Random.Range(1.0f, 9.0f));
+            
+                int index = Random.Range(0, spawnables.Length);
+                GameObject newObject = (GameObject)Instantiate(spawnables[index], spawnPos, Quaternion.identity);
+                newObject.GetComponent<Interactable>().SetWater(this);
+            }
+        }
+        prevVelocity = velocity;
+
         curScale = Mathf.Lerp(curScale, targetScale, 2 * Time.deltaTime);
+        prevHeight = (waterLevel+waveHeight);
         transform.parent.localScale = new Vector3(curScale, 1, transform.parent.localScale.z);
     }
 

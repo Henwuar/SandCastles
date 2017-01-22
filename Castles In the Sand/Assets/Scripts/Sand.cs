@@ -10,6 +10,8 @@ public class Sand : MonoBehaviour
     private float slope;
     [SerializeField]
     private float erosionRate;
+    [SerializeField]
+    private float smoothSpeed;
 
     private Texture2D craterMap;
     private TerrainData terrain;
@@ -173,7 +175,7 @@ public class Sand : MonoBehaviour
         {
             for (int j = 0; j < h; j++)
             {
-                heights[j, i] = Mathf.Lerp(heights[j, i], averageHeight, Time.deltaTime);
+                heights[j, i] = Mathf.Lerp(heights[j, i], averageHeight, Time.deltaTime*smoothSpeed);
             }
         }
         terrain.SetHeights(xBase, yBase, heights);

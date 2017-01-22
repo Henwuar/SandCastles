@@ -10,6 +10,9 @@ public class Interactable : MonoBehaviour
     private Water water;
     [SerializeField]
     private Material submergedMat;
+    [SerializeField]
+    private float sinkBias;
+
     private Material baseMat;
     private Renderer render;
 
@@ -53,7 +56,7 @@ public class Interactable : MonoBehaviour
         else
         {
             render.material = baseMat;
-            if(transform.position.y < water.GetAbsoluteHeight())
+            if(transform.position.y +sinkBias < water.GetAbsoluteHeight())
             {
                 submerged = true;
                 return;
@@ -83,5 +86,10 @@ public class Interactable : MonoBehaviour
     public void SetHighlighted(bool value)
     {
         highlighted = value;
+    }
+
+    public void SetWater(Water newWater)
+    {
+        water = newWater;
     }
 }

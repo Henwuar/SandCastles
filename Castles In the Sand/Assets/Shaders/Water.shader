@@ -1,6 +1,6 @@
 ﻿//Highlights intersections with other objects
 
-Shader "Custom/IntersectionHighlights"
+Shader "Custom/Water"
 {
 	Properties
 	{
@@ -10,7 +10,9 @@ Shader "Custom/IntersectionHighlights"
 		_Timer("Timer", Float) = 0 //for applying vertex offset
 		_RippleHeight("Ripple Height", Float) = 1
 		_RippleFrequency("Ripple Frequency", Float) = 10
-		_NoiseTexture("Noise Texture", 2D) = "white" {}
+		_MainTex("Main Texture", 2D) = "white" {}
+		_SwellTex("Swell Texture", 2D) = "white"{}
+
 	}
 		SubShader
 	{
@@ -29,19 +31,14 @@ Shader "Custom/IntersectionHighlights"
 #include "UnityCG.cginc"
 
 	uniform sampler2D _CameraDepthTexture; //Depth Texture
-	uniform sampler2D _NoiseTexture;
+	uniform sampler2D _MainTex;
+	uniform sampler2D _SwellTex;
 	uniform float4 _RegularColor;
 	uniform float4 _HighlightColor;
 	uniform float _HighlightThresholdMax;
 	uniform float _Timer;
 	uniform float _RippleHeight;
 	uniform float _RippleFrequency;
-
-	struct appdata
-	{
-		float4 vertex : POSITION;
-		float2 texcoord : TEXCOORD0;
-	};
 
 	struct v2f
 	{
@@ -50,7 +47,7 @@ Shader "Custom/IntersectionHighlights"
 		float4 projPos : TEXCOORD1; //Screen position of pos
 	};
 
-	v2f vert(appdata v)
+	v2f vert(appdata_base v)
 	{
 		v2f o;
 		//apply an offset to make ripples
@@ -66,10 +63,12 @@ Shader "Custom/IntersectionHighlights"
 
 	half4 frag(v2f i) : COLOR
 	{
-		float4 finalColor = _RegularColor;
+		float4 finalColor = _RegularColor * tex2D(_MainTex, i.uv);
+		float4 swellColor = _HighlightColor * tex2D(_SwellTex, i.uv);
 
+		finalColor = saturate(finalColor + swellColor);
 		//Get the distance to the camera from the depth buffer for this point
-		float sceneZ = LinearEyeDepth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)).r);
+		/*float sceneZ = LinearEyeDepth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)).r);
 
 		//Actual distance to the camera
 		float partZ = i.projPos.z;
@@ -79,8 +78,10 @@ Shader "Custom/IntersectionHighlights"
 
 		if (diff <= 1)
 		{
+
+			//float4 swellColor = _HighlightColor * tex2D(_SwellTex, float2(i.uv.x, diff));
 			finalColor = lerp(_HighlightColor, _RegularColor, float4(diff, diff, diff, diff));
-		}
+		}*/
 
 		half4 c;
 		c.r = finalColor.r;

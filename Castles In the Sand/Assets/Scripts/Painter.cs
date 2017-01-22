@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Painter : MonoBehaviour
 {
@@ -16,6 +17,10 @@ public class Painter : MonoBehaviour
     float sandFloat;
     [SerializeField]
     private int maxBrushSize;
+
+    private AudioSource audio;
+    public AudioClip smooth;
+    public AudioClip move;
 
     private Transform shadow;
     private Transform sandBall;
@@ -35,11 +40,20 @@ public class Painter : MonoBehaviour
         sandBall = cursor.transform.FindChild("SandBall");
         shadowScale = cursor.transform.localScale.x;
         ballScale = cursor.transform.localScale.x;
+        audio = GetComponent<AudioSource>();
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
+        if(Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+        if(Input.GetKey(KeyCode.R))
+        {
+            SceneManager.LoadScene(0);
+        }
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Physics.Raycast(ray, out hit);
@@ -62,20 +76,46 @@ public class Painter : MonoBehaviour
         {
             if(hit.collider.gameObject.tag == "Sand")
             {
-                if (Input.GetMouseButton(0) && curSand > 0)
+                if (Input.GetMouseButton(0))
                 {
-                    sand.Paint(hit.point, brushSize, maxBrushSize);
-                    curSand -= Time.deltaTime * brushSize;
+                    if (curSand > 0)
+                    {
+                        audio.clip = move;
+                        if (!audio.isPlaying)
+                        {
+                            audio.Play();
+                        }
+                        sand.Paint(hit.point, brushSize, maxBrushSize);
+                        curSand -= Time.deltaTime * brushSize;
+                    }
                 }
-                if (Input.GetMouseButton(1))
+                else if (Input.GetMouseButton(1))
                 {
+                    audio.clip = move;
+                    if (!audio.isPlaying)
+                    {
+                        audio.Play();
+                    }
                     sand.Paint(hit.point, brushSize, maxBrushSize, false);
-                    curSand += Time.deltaTime * brushSize;
+                    if(curSand < maxSand * 1.25f)
+                    {
+                        curSand += Time.deltaTime * brushSize;
+                    }
+                    
                 }
-                if (Input.GetMouseButton(2))
+                else if (Input.GetMouseButton(2))
                 {
-                    sand.Smooth(hit.point, brushSize);
-                    curSand += Time.deltaTime * brushSize;   
+                    audio.clip = smooth;
+                    if(!audio.isPlaying)
+                    {
+                        audio.Play();
+                    }
+                    
+                    sand.Smooth(hit.point, brushSize); 
+                }
+                else
+                {
+                    audio.Stop();
                 }
             }
             if (hit.collider.gameObject.tag == "Interactable" && selected == null)
