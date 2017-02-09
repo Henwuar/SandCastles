@@ -203,4 +203,22 @@ public class Sand : MonoBehaviour
     {
         return Mathf.Min(slope * ((float)x / terrain.heightmapWidth), BASE_HEIGHT);
     }
+
+    public float GetHeight(Vector3 position)
+    {
+        Vector3 point = position - transform.position;
+        int xBase = Mathf.FloorToInt((point.x / terrain.size.x) * terrain.heightmapWidth);
+        int yBase = Mathf.FloorToInt((point.z / terrain.size.z) * terrain.heightmapHeight);
+
+        return terrain.GetHeight(xBase, yBase);
+    }   
+
+    public Vector3 GetNormal(Vector3 position)
+    {
+        Vector3 point = position - transform.position;
+        int xBase = Mathf.FloorToInt((point.x / terrain.size.x) * terrain.heightmapWidth);
+        int yBase = Mathf.FloorToInt((point.z / terrain.size.z) * terrain.heightmapHeight);
+
+        return terrain.GetInterpolatedNormal(xBase, yBase);
+    }
 }

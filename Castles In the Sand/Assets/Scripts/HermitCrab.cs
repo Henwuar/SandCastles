@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class HermitCrab : MonoBehaviour
 {
+    public Sand sand;
+
     [SerializeField]
     private Vector2 bounds;
     [SerializeField]
@@ -46,9 +48,9 @@ public class HermitCrab : MonoBehaviour
             }
             else
             {
-                transform.position = new Vector3(transform.position.x, 1, transform.position.z);
-                RaycastHit hit;
-                Physics.Raycast(transform.position, -Vector3.up, out hit);
+                transform.position = new Vector3(transform.position.x, sand.GetHeight(transform.position), transform.position.z);
+                //RaycastHit hit;
+                /*Physics.Raycast(transform.position, -Vector3.up, out hit);
                 if(hit.collider && hit.collider.tag == "Sand")
                 {
                     transform.position = hit.point;
@@ -57,8 +59,8 @@ public class HermitCrab : MonoBehaviour
                 else if(hit.collider && hit.collider.tag == "Water")
                 {
                     transform.position = hit.point - Vector3.up * transform.position.x / 10;
-                }
-                transform.LookAt(transform.position + Vector3.Lerp(transform.forward, target - transform.position, Time.deltaTime), hit.normal);
+                }*/
+                transform.LookAt(transform.position + Vector3.Lerp(transform.forward, target - transform.position, Time.deltaTime), sand.GetNormal(transform.position));
                 body.AddForce(transform.forward * acceleration);
                 body.velocity = Vector3.ClampMagnitude(body.velocity, maxSpeed);
 

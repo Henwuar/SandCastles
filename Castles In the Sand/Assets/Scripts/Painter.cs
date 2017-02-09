@@ -97,10 +97,8 @@ public class Painter : MonoBehaviour
                         audio.Play();
                     }
                     sand.Paint(hit.point, brushSize, maxBrushSize, false);
-                    if(curSand < maxSand * 1.25f)
-                    {
-                        curSand += Time.deltaTime * brushSize;
-                    }
+                    
+                    curSand += Time.deltaTime * brushSize;
                     
                 }
                 else if (Input.GetMouseButton(2))
